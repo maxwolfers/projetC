@@ -1,0 +1,45 @@
+# C/C++ build artifacts
+*.o
+*.obj
+*.a
+*.la
+*.lo
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.out
+*.app
+*.log
+
+# Project outputs
+farmheroes
+farmheroes.exe
+savegame.dat
+
+# Debug/symbol files
+*.pdb
+*.dSYM/
+
+# Editor/IDE
+.vscode/
+*.code-workspace
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backup/temp
+*~
+*.swp
+*.tmp
+
+
