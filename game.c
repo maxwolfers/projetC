@@ -8,7 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 /**
  * Initialise un nouvel état de jeu
@@ -219,7 +223,11 @@ int game_loop(GameState *state) {
         }
         
         /* Petit délai pour éviter de surcharger le CPU */
+        #ifdef _WIN32
+        Sleep(50); /* 50ms */
+        #else
         usleep(50000); /* 50ms */
+        #endif
     }
     
     restore_input();

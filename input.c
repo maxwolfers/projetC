@@ -1,17 +1,31 @@
 #include "input.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#endif
 
+#ifndef _WIN32
 static struct termios old_termios;
+#endif
 
 /**
  * Configure le terminal en mode non-canonique pour la saisie
  */
 void setup_input(void) {
+#ifdef _WIN32
+    /* Sur Windows, nous utilisons _kbhit/_getch, aucune configuration spéciale requise. */
+    /* Cacher le curseur via séquence ANSI (souvent supportée dans le terminal moderne) */
+    printf("\033[?25l");
+    fflush(stdout);
+#else
     struct termios new_termios;
     
     /* Vérifier que stdin est un terminal */
@@ -35,12 +49,18 @@ void setup_input(void) {
     /* Cacher le curseur */
     printf("\033[?25l");
     fflush(stdout);
+#endif
 }
 
 /**
  * Restaure le terminal en mode canonique
  */
 void restore_input(void) {
+#ifdef _WIN32
+    /* Restaurer le curseur */
+    printf("\033[?25h");
+    fflush(stdout);
+#else
     /* Vérifier que stdin est un terminal */
     if (!isatty(STDIN_FILENO)) {
         return;
@@ -52,12 +72,31 @@ void restore_input(void) {
     
     tcsetattr(STDIN_FILENO, TCSANOW, &old_termios);
     fcntl(STDIN_FILENO, F_SETFL, 0);
+#endif
 }
 
 /**
  * Lit une touche pressée (non-bloquant)
  */
 int get_key(void) {
+#ifdef _WIN32
+    if (_kbhit()) {
+        int c = _getch();
+        /* Gestion des flèches Windows: 224 puis code */
+        if (c == 224 || c == 0) {
+            int code = _getch();
+            switch (code) {
+                case 72: return KEY_UP;    /* Up */
+                case 80: return KEY_DOWN;  /* Down */
+                case 75: return KEY_LEFT;  /* Left */
+                case 77: return KEY_RIGHT; /* Right */
+                default: return 0;
+            }
+        }
+        return c;
+    }
+    return 0;
+#else
     char c;
     if (read(STDIN_FILENO, &c, 1) == 1) {
         /* Gestion des flèches (séquence ESC [ A/B/C/D) */
@@ -81,6 +120,7 @@ int get_key(void) {
         return c;
     }
     return 0;
+#endif
 }
 
 /**
@@ -89,7 +129,11 @@ int get_key(void) {
 int wait_key(void) {
     int key;
     while ((key = get_key()) == 0) {
+#ifdef _WIN32
+        Sleep(10); /* 10ms */
+#else
         usleep(10000); /* 10ms */
+#endif
     }
     return key;
 }
