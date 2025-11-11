@@ -17,6 +17,7 @@ FarmHeroes est un jeu de type "match-3" inspiré de FarmHeroes, adapté pour fon
 
 ## Compilation
 
+### Mac
 Le projet utilise un Makefile pour la compilation :
 
 ```bash
@@ -35,6 +36,21 @@ Pour recompiler depuis le début :
 
 ```bash
 make rebuild
+```
+
+### Windows
+Dans PowerShell tapez :
+
+```bash
+mingw32-make
+```
+
+Cela créera l'exécutable `farmheroes.exe`.
+
+Pour executer le jeu : 
+
+```bash
+./farmheroes.exe
 ```
 
 ## Utilisation
