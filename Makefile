@@ -5,8 +5,15 @@ CC = gcc
 # Options de compilation
 CFLAGS = -Wall -Wextra -std=c99 -g
 
-# Nom de l'exécutable
-TARGET = farmheroes
+# Suffixe d'exécutable selon l'OS
+ifeq ($(OS),Windows_NT)
+  EXE := .exe
+else
+  EXE :=
+endif
+
+# Nom de l'exécutable (portable)
+TARGET = farmheroes$(EXE)
 
 # Fichiers sources
 SOURCES = main.c game.c board.c groups.c contract.c display.c input.c save.c
