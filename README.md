@@ -3,7 +3,7 @@
 ## Description
 
 FarmHeroes est un jeu de type "match-3" inspiré de FarmHeroes, adapté pour fonctionner en mode console. Le but est d'aligner des items pour les faire disparaître et remplir des contrats dans un nombre limité de coups et de temps.
-
+<br>
 
 ## Caractéristiques
 
@@ -15,7 +15,7 @@ FarmHeroes est un jeu de type "match-3" inspiré de FarmHeroes, adapté pour fon
 - Système de vies (5 vies maximum)
 - Sauvegarde de progression
 - Interface console avec couleurs ANSI
-
+<br>
 
 ## Compilation
 
@@ -54,7 +54,7 @@ Pour executer le jeu :
 ```bash
 ./farmheroes.exe
 ```
-
+<br>
 
 ## Utilisation
 
@@ -85,6 +85,7 @@ Lancer le jeu :
    - **Rectangle** : 2 × (longueur × largeur)
 4. **Gravité** : Les items tombent automatiquement après suppression
 5. **Vies** : Vous avez 5 vies. Chaque échec consomme une vie.
+<br>
 
 ## Structure du projet
 
@@ -101,7 +102,7 @@ Lancer le jeu :
 ├── main.c            # Programme principal
 └── Makefile          # Fichier de compilation
 ```
-
+<br>
 
 ## Fichier de sauvegarde
 
@@ -110,7 +111,7 @@ Le jeu sauvegarde automatiquement la progression dans le fichier `savegame.dat`.
 - Le niveau actuel
 - Le nombre de vies
 - Les niveaux complétés
-
+<br>
 
 ## Notes techniques
 
@@ -118,7 +119,7 @@ Le jeu sauvegarde automatiquement la progression dans le fichier `savegame.dat`.
 - Compatible avec les systèmes Unix/Linux/macOS
 - Compilé avec le standard C99
 - Utilise les codes de couleur ANSI pour l'affichage
-
+<br>
 
 ## Auteur
 
