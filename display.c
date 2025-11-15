@@ -75,7 +75,7 @@ void display_board(char board[ROWS][COLS], int cursor_row, int cursor_col,
     /* En-tête avec numéros de colonnes */
     printf("    ");
     for (col = start_col; col < start_col + view_cols && col < COLS; col++) {
-        printf("%2d", col % 10);
+        printf("%2d  ", col % 10);  /* Double espace pour aligner avec les éléments */
     }
     printf("\n");
     
@@ -100,9 +100,9 @@ void display_board(char board[ROWS][COLS], int cursor_row, int cursor_col,
                 printf("%s", COLOR_RESET);
             }
             
-            printf(" ");
+            printf("  ");  /* Double espace entre colonnes */
         }
-        printf("\n");
+        printf("\n\n");  /* Ligne vide entre chaque rangée */
     }
     
     /* Afficher la position du curseur */
