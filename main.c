@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
+#include <wchar.h>
 
 #define N 10
 
@@ -59,6 +61,27 @@ void updateContrat(Contrat *c, char item) {
     }
 }
 
+static void writeWide(const wchar_t *ws) {
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
+        // Fallback: nothing special, ignore
+        return;
+    }
+    DWORD written = 0;
+    WriteConsoleW(hOut, ws, (DWORD)wcslen(ws), &written, NULL);
+}
+
+void printEmoji(char c) {
+    switch (c) {
+        case 'S': writeWide(L"☀️"); break; // Soleil
+        case 'F': writeWide(L"🍓"); break; // Fraise
+        case 'P': writeWide(L"🍎"); break; // Pomme
+        case 'O': writeWide(L"🧅"); break; // Oignon
+        case 'M': writeWide(L"🍊"); break; // Mandarine
+        default:  printf("%c ", c); break;
+    }
+}
+
 void printJeu(char (*mat)[N], Contrat *c) {
     printf("\n    ");
     for(int j = 0; j < N; j++) printf("%2d ", j + 1);
@@ -67,17 +90,20 @@ void printJeu(char (*mat)[N], Contrat *c) {
     for (int i = 0; i < N; i++) {
         printf("%2d | ", i + 1);
         for (int j = 0; j < N; j++) {
-            printf("%c  ", mat[i][j]);
+            // ICI : On utilise la fonction emoji au lieu de printf("%c")
+            printEmoji(mat[i][j]);
+            printf(" "); // Espace pour aérer car les emojis sont parfois larges
         }
 
-        printf("          ");
+        printf("        "); // Un peu moins d'espace car les emojis prennent de la place
 
+        // Affichage du contrat à droite
         if (i == 0)      printf("=== CONTRAT ===");
         else if (i == 1) printf("SCORE : %d", c->score);
         else if (i == 2) printf("MISSIONS :");
-        else if (i == 3) printf("[ %c ] : %d / %d", c->missions[0].type, c->missions[0].mange, c->missions[0].aManger);
-        else if (i == 4) printf("[ %c ] : %d / %d", c->missions[1].type, c->missions[1].mange, c->missions[1].aManger);
-        else if (i == 5) printf("[ %c ] : %d / %d", c->missions[2].type, c->missions[2].mange, c->missions[2].aManger);
+        else if (i == 3) { printf("[ "); printEmoji(c->missions[0].type); printf("] : %d / %d", c->missions[0].mange, c->missions[0].aManger); }
+        else if (i == 4) { printf("[ "); printEmoji(c->missions[1].type); printf("] : %d / %d", c->missions[1].mange, c->missions[1].aManger); }
+        else if (i == 5) { printf("[ "); printEmoji(c->missions[2].type); printf("] : %d / %d", c->missions[2].mange, c->missions[2].aManger); }
         else if (i == 6) printf("===============");
 
         printf("\n");
@@ -203,6 +229,8 @@ void stabiliserPlateau(char (*mat)[N], Contrat *c, int compterPoints) {
 }
 
 int main(void) {
+    SetConsoleOutputCP(65001);
+
     char (*mat)[N] = malloc(sizeof *mat * N);
     if (!mat) return 1;
 
