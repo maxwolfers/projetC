@@ -6,7 +6,6 @@
 
 #define N 10
 
-// Codes ASCII touches clavier
 #define KEY_UP 72
 #define KEY_DOWN 80
 #define KEY_LEFT 75
@@ -88,22 +87,26 @@ void printEmoji(char c) {
     }
 }
 
-void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, int selCol) {
-    gotoligcol(0, 0);
+// MODIFICATION ICI : Ajout du paramètre 'clear'
+void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, int selCol, int clear) {
+
+    if (clear) {
+        system("cls"); // On efface tout si demandé
+    } else {
+        gotoligcol(0, 0); // Sinon on remonte juste
+    }
 
     time_t now = time(NULL);
     int elapsed = (int)difftime(now, c->debut);
     int min = elapsed / 60;
     int sec = elapsed % 60;
 
-    // Num colonne
     Color(15, 0);
     printf("\n     ");
     for(int j = 0; j < N; j++) printf(" %d  ", j + 1);
     printf("\n");
 
     for (int i = 0; i < N; i++) {
-        // Num ligne
         Color(15, 0);
         printf("%2d |", i + 1);
 
@@ -130,13 +133,12 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         else if (i == 5) { printf("[ "); printEmoji(c->missions[2].type); printf(" ] : %d / %d", c->missions[2].mange, c->missions[2].aManger); }
         else if (i == 6) printf("===============");
 
-        gotoligcol(i + 2, 75); // i+2 car on a un décalage vertical (En-tête)
+        gotoligcol(i + 2, 75);
 
         if (i == 0) {
             printf("CHRONO : %02d:%02d", min, sec);
         }
         else if (i == 3) {
-            // Couleur Rouge si on approche de la fin, sinon Blanc
             if(c->coups >= c->maxCoups - 5) Color(12, 0);
             else Color(15, 0);
 
@@ -148,7 +150,7 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
     }
 
     Color(15, 0);
-    printf("\n[FLECHES]: Bouger  \n[ESPACE]: Selectionner  \n[Q]: Quitter\n");
+    printf("\n[FLECHES]: Bouger  \n[ESPACE]: Selectionner  \n[Q]: Quitter\n\n");
 }
 
 void switchPos(char (*mat)[N], int i, int j, int k, int l) {
@@ -157,7 +159,6 @@ void switchPos(char (*mat)[N], int i, int j, int k, int l) {
     mat[k][l] = tmp;
 }
 
-// Calcule la hauteur d'une colonne de mêmes items centrée en i,j
 int getHauteurVerticale(char (*mat)[N], int i, int j, int *top, int *bottom) {
     char type = mat[i][j];
     *top = i; *bottom = i;
@@ -170,28 +171,24 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
     int trouve = 0;
     for(int i=0; i<N; i++) for(int j=0; j<N; j++) aSupprimer[i][j] = 0;
 
-    //  Forme H
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N - 2; j++) {
             char type = mat[i][j];
-            // On cherche d'abord le pont horizontal [j][j+1][j+2]
             if (mat[i][j+1] == type && mat[i][j+2] == type) {
                 int topG, botG, topD, botD;
-                // On mesure les piliers aux extremités du pont
                 int hG = getHauteurVerticale(mat, i, j, &topG, &botG);
                 int hD = getHauteurVerticale(mat, i, j+2, &topD, &botD);
 
                 if (hG >= 3 && hD >= 3) {
-                    aSupprimer[i][j+1] = 1; // Milieu du pont
-                    for (int k = topG; k <= botG; k++) aSupprimer[k][j] = 1;   // Pilier gauche complet
-                    for (int k = topD; k <= botD; k++) aSupprimer[k][j+2] = 1; // Pilier droit complet
+                    aSupprimer[i][j+1] = 1;
+                    for (int k = topG; k <= botG; k++) aSupprimer[k][j] = 1;
+                    for (int k = topD; k <= botD; k++) aSupprimer[k][j+2] = 1;
                     trouve = 1;
                 }
             }
         }
     }
 
-    // Horizontal
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N - 2; j++) {
             if (mat[i][j] == mat[i][j+1] && mat[i][j] == mat[i][j+2]) {
@@ -200,7 +197,6 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
         }
     }
 
-    // Vertical
     for (int i = 0; i < N - 2; i++) {
         for (int j = 0; j < N; j++) {
             if (mat[i][j] == mat[i+1][j] && mat[i][j] == mat[i+2][j]) {
@@ -217,11 +213,9 @@ void appliquerGravite(char (*mat)[N], int (*aSupprimer)[N], Contrat *c, int upda
     }
     for (int j = 0; j < N; j++) {
         int writePos = N - 1;
-        // On remonte la colonne en gardant ce qui n'est pas supprimé
         for (int i = N - 1; i >= 0; i--) {
             if (aSupprimer[i][j] == 0) { mat[writePos][j] = mat[i][j]; writePos--; }
         }
-        // On comble le haut avec du random
         for (int i = writePos; i >= 0; i--) mat[i][j] = CHOICES[rand() % NB_CHOICES];
     }
 }
@@ -246,6 +240,9 @@ int main(void) {
     Contrat monContrat;
     initContrat(&monContrat);
 
+    // Initial clear
+    system("cls");
+
     for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) mat[i][j] = CHOICES[rand() % NB_CHOICES];
     stabiliserPlateau(mat, &monContrat, 0);
 
@@ -254,24 +251,20 @@ int main(void) {
     int running = 1;
 
     while (running) {
-        // 1. Affichage
-        printJeu(mat, &monContrat, curLig, curCol, selLig, selCol);
+        printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
 
-        // 2. Vérification Condition Défaite
         if (monContrat.coups >= monContrat.maxCoups) {
             printf("\n\nPERDU ! Vous n'avez plus de coups.\n");
             system("pause");
             break;
         }
 
-        // 3. Gestion Temps Réel (Boucle d'attente active)
         while (!_kbhit()) {
-            Sleep(100); // Pause de 0.1s pour ne pas surchauffer le processeur
-            // On rafraichit l'écran uniquement pour le chrono
-            printJeu(mat, &monContrat, curLig, curCol, selLig, selCol);
+            Sleep(100);
+            // MODIFICATION ICI : On met '0' pour ne PAS effacer l'écran (éviter le clignotement du chrono)
+            printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 0);
         }
 
-        // 4. Lecture Touche
         int c = _getch();
 
         if (c == 224 || c == 0) {
@@ -290,13 +283,8 @@ int main(void) {
                 if (curLig == selLig && curCol == selCol) {
                     selLig = -1; selCol = -1;
                 } else {
-                    // ECHANGE
                     switchPos(mat, selLig, selCol, curLig, curCol);
-
-                    // --- INCREMENTATION DU COMPTEUR DE COUPS ---
                     monContrat.coups++;
-                    // -------------------------------------------
-
                     stabiliserPlateau(mat, &monContrat, 1);
                     selLig = -1; selCol = -1;
                 }
