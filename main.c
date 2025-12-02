@@ -2,9 +2,17 @@
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
-#include <wchar.h>
+#include <conio.h>
 
 #define N 10
+
+// Codes ASCII touches clavier
+#define KEY_UP 72
+#define KEY_DOWN 80
+#define KEY_LEFT 75
+#define KEY_RIGHT 77
+#define KEY_SPACE 32
+#define KEY_Q 113
 
 const char CHOICES[] = {'S', 'F', 'P', 'O', 'M'};
 const int NB_CHOICES = 5;
@@ -18,7 +26,22 @@ typedef struct {
 typedef struct {
     Objectif missions[3];
     int score;
+    int coups;
+    int maxCoups;
+    time_t debut;
 } Contrat;
+
+void Color(int text, int bg) {
+    HANDLE H = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(H, bg * 16 + text);
+}
+
+void gotoligcol(int lig, int col) {
+    COORD mycoord;
+    mycoord.X = col;
+    mycoord.Y = lig;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), mycoord);
+}
 
 void shuffle(char *array, int n) {
     for (int i = 0; i < n - 1; i++) {
@@ -32,83 +55,100 @@ void shuffle(char *array, int n) {
 void initContrat(Contrat *c) {
     char tempChoices[5];
     for(int i=0; i<5; i++) tempChoices[i] = CHOICES[i];
-
     shuffle(tempChoices, 5);
 
     c->score = 0;
 
-    c->missions[0].type = tempChoices[0];
-    c->missions[0].aManger = 10;
-    c->missions[0].mange = 0;
+    c->coups = 0;
+    c->maxCoups = 20;
+    c->debut = time(NULL);
 
-    c->missions[1].type = tempChoices[1];
-    c->missions[1].aManger = 5;
-    c->missions[1].mange = 0;
-
-    c->missions[2].type = tempChoices[2];
-    c->missions[2].aManger = 3;
-    c->missions[2].mange = 0;
+    c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 10; c->missions[0].mange = 0;
+    c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 5;  c->missions[1].mange = 0;
+    c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 3;  c->missions[2].mange = 0;
 }
 
 void updateContrat(Contrat *c, char item) {
     c->score++;
     for(int i=0; i<3; i++) {
-        if(c->missions[i].type == item) {
-            if(c->missions[i].mange < c->missions[i].aManger) {
-                c->missions[i].mange++;
-            }
+        if(c->missions[i].type == item && c->missions[i].mange < c->missions[i].aManger) {
+            c->missions[i].mange++;
         }
     }
-}
-
-static void writeWide(const wchar_t *ws) {
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
-        // Fallback: nothing special, ignore
-        return;
-    }
-    DWORD written = 0;
-    WriteConsoleW(hOut, ws, (DWORD)wcslen(ws), &written, NULL);
 }
 
 void printEmoji(char c) {
-    switch (c) {
-        case 'S': writeWide(L"☀️"); break; // Soleil
-        case 'F': writeWide(L"🍓"); break; // Fraise
-        case 'P': writeWide(L"🍎"); break; // Pomme
-        case 'O': writeWide(L"🧅"); break; // Oignon
-        case 'M': writeWide(L"🍊"); break; // Mandarine
-        default:  printf("%c ", c); break;
+    switch(c) {
+        case 'S': printf("☀️"); break;
+        case 'F': printf("🍓"); break;
+        case 'P': printf("🍎"); break;
+        case 'O': printf("🧅"); break;
+        case 'M': printf("🍊"); break;
+        default:  printf("%c", c);
     }
 }
 
-void printJeu(char (*mat)[N], Contrat *c) {
-    printf("\n    ");
-    for(int j = 0; j < N; j++) printf("%2d ", j + 1);
+void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, int selCol) {
+    gotoligcol(0, 0);
+
+    time_t now = time(NULL);
+    int elapsed = (int)difftime(now, c->debut);
+    int min = elapsed / 60;
+    int sec = elapsed % 60;
+
+    // Num colonne
+    Color(15, 0);
+    printf("\n     ");
+    for(int j = 0; j < N; j++) printf(" %d  ", j + 1);
     printf("\n");
 
     for (int i = 0; i < N; i++) {
-        printf("%2d | ", i + 1);
+        // Num ligne
+        Color(15, 0);
+        printf("%2d |", i + 1);
+
         for (int j = 0; j < N; j++) {
-            // ICI : On utilise la fonction emoji au lieu de printf("%c")
+            int bg = 0; int txt = 15;
+            if (i == selLig && j == selCol) { bg = 15; txt = 0; }
+            else if (i == curLig && j == curCol) { bg = 1; txt = 15; }
+
+            Color(txt, bg);
+            printf(" ");
             printEmoji(mat[i][j]);
-            printf(" "); // Espace pour aérer car les emojis sont parfois larges
+            printf(" ");
+
+            Color(15, 0);
         }
 
-        printf("        "); // Un peu moins d'espace car les emojis prennent de la place
+        printf("       ");
 
-        // Affichage du contrat à droite
         if (i == 0)      printf("=== CONTRAT ===");
         else if (i == 1) printf("SCORE : %d", c->score);
         else if (i == 2) printf("MISSIONS :");
-        else if (i == 3) { printf("[ "); printEmoji(c->missions[0].type); printf("] : %d / %d", c->missions[0].mange, c->missions[0].aManger); }
-        else if (i == 4) { printf("[ "); printEmoji(c->missions[1].type); printf("] : %d / %d", c->missions[1].mange, c->missions[1].aManger); }
-        else if (i == 5) { printf("[ "); printEmoji(c->missions[2].type); printf("] : %d / %d", c->missions[2].mange, c->missions[2].aManger); }
+        else if (i == 3) { printf("[ "); printEmoji(c->missions[0].type); printf(" ] : %d / %d", c->missions[0].mange, c->missions[0].aManger); }
+        else if (i == 4) { printf("[ "); printEmoji(c->missions[1].type); printf(" ] : %d / %d", c->missions[1].mange, c->missions[1].aManger); }
+        else if (i == 5) { printf("[ "); printEmoji(c->missions[2].type); printf(" ] : %d / %d", c->missions[2].mange, c->missions[2].aManger); }
         else if (i == 6) printf("===============");
+
+        gotoligcol(i + 2, 75); // i+2 car on a un décalage vertical (En-tête)
+
+        if (i == 0) {
+            printf("CHRONO : %02d:%02d", min, sec);
+        }
+        else if (i == 3) {
+            // Couleur Rouge si on approche de la fin, sinon Blanc
+            if(c->coups >= c->maxCoups - 5) Color(12, 0);
+            else Color(15, 0);
+
+            printf("COUPS : %d / %d", c->coups, c->maxCoups);
+            Color(15, 0);
+        }
 
         printf("\n");
     }
-    printf("\n");
+
+    Color(15, 0);
+    printf("\n[FLECHES]: Bouger  \n[ESPACE]: Selectionner  \n[Q]: Quitter\n");
 }
 
 void switchPos(char (*mat)[N], int i, int j, int k, int l) {
@@ -117,52 +157,34 @@ void switchPos(char (*mat)[N], int i, int j, int k, int l) {
     mat[k][l] = tmp;
 }
 
+// Calcule la hauteur d'une colonne de mêmes items centrée en i,j
 int getHauteurVerticale(char (*mat)[N], int i, int j, int *top, int *bottom) {
     char type = mat[i][j];
-    *top = i;
-    *bottom = i;
-
-    // On monte tant que c'est pareil et qu'on ne sort pas de la grille
-    while (*top > 0 && mat[*top - 1][j] == type) {
-        (*top)--;
-    }
-
-    // On descend tant que c'est pareil
-    while (*bottom < N - 1 && mat[*bottom + 1][j] == type) {
-        (*bottom)++;
-    }
-
-    return (*bottom - *top + 1); // Hauteur totale
+    *top = i; *bottom = i;
+    while (*top > 0 && mat[*top - 1][j] == type) (*top)--;
+    while (*bottom < N - 1 && mat[*bottom + 1][j] == type) (*bottom)++;
+    return (*bottom - *top + 1);
 }
 
 int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
     int trouve = 0;
-    for(int i=0; i<N; i++)
-        for(int j=0; j<N; j++)
-            aSupprimer[i][j] = 0;
+    for(int i=0; i<N; i++) for(int j=0; j<N; j++) aSupprimer[i][j] = 0;
 
-    // forme H
+    //  Forme H
     for (int i = 0; i < N; i++) {
-        // On cherche un PONT horizontal de 3 items (j, j+1, j+2)
         for (int j = 0; j < N - 2; j++) {
             char type = mat[i][j];
-
-            // Vérifie le pont : [X][X][X]
+            // On cherche d'abord le pont horizontal [j][j+1][j+2]
             if (mat[i][j+1] == type && mat[i][j+2] == type) {
-
-                // Le pont existe. Vérifions les PILIERS aux extrémités (j et j+2)
                 int topG, botG, topD, botD;
-                int hG = getHauteurVerticale(mat, i, j, &topG, &botG);     // Pilier Gauche
-                int hD = getHauteurVerticale(mat, i, j+2, &topD, &botD);   // Pilier Droit
+                // On mesure les piliers aux extremités du pont
+                int hG = getHauteurVerticale(mat, i, j, &topG, &botG);
+                int hD = getHauteurVerticale(mat, i, j+2, &topD, &botD);
 
-                // Si les deux piliers font au moins 3 de haut => C'EST UN H !
                 if (hG >= 3 && hD >= 3) {
-                    // On marque tout : le pont + les piliers entiers
                     aSupprimer[i][j+1] = 1; // Milieu du pont
-
-                    for (int k = topG; k <= botG; k++) aSupprimer[k][j] = 1;   // Tout le pilier gauche
-                    for (int k = topD; k <= botD; k++) aSupprimer[k][j+2] = 1; // Tout le pilier droit
-
+                    for (int k = topG; k <= botG; k++) aSupprimer[k][j] = 1;   // Pilier gauche complet
+                    for (int k = topD; k <= botD; k++) aSupprimer[k][j+2] = 1; // Pilier droit complet
                     trouve = 1;
                 }
             }
@@ -173,10 +195,7 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N - 2; j++) {
             if (mat[i][j] == mat[i][j+1] && mat[i][j] == mat[i][j+2]) {
-                aSupprimer[i][j] = 1;
-                aSupprimer[i][j+1] = 1;
-                aSupprimer[i][j+2] = 1;
-                trouve = 1;
+                aSupprimer[i][j] = 1; aSupprimer[i][j+1] = 1; aSupprimer[i][j+2] = 1; trouve = 1;
             }
         }
     }
@@ -185,83 +204,107 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
     for (int i = 0; i < N - 2; i++) {
         for (int j = 0; j < N; j++) {
             if (mat[i][j] == mat[i+1][j] && mat[i][j] == mat[i+2][j]) {
-                aSupprimer[i][j] = 1;
-                aSupprimer[i+1][j] = 1;
-                aSupprimer[i+2][j] = 1;
-                trouve = 1;
+                aSupprimer[i][j] = 1; aSupprimer[i+1][j] = 1; aSupprimer[i+2][j] = 1; trouve = 1;
             }
         }
     }
-
     return trouve;
 }
 
 void appliquerGravite(char (*mat)[N], int (*aSupprimer)[N], Contrat *c, int updateScore) {
     if(updateScore) {
-        for(int i=0; i<N; i++) {
-            for(int j=0; j<N; j++) {
-                if(aSupprimer[i][j]) {
-                    updateContrat(c, mat[i][j]);
-                }
-            }
-        }
+        for(int i=0; i<N; i++) for(int j=0; j<N; j++) if(aSupprimer[i][j]) updateContrat(c, mat[i][j]);
     }
-
     for (int j = 0; j < N; j++) {
         int writePos = N - 1;
+        // On remonte la colonne en gardant ce qui n'est pas supprimé
         for (int i = N - 1; i >= 0; i--) {
-            if (aSupprimer[i][j] == 0) {
-                mat[writePos][j] = mat[i][j];
-                writePos--;
-            }
+            if (aSupprimer[i][j] == 0) { mat[writePos][j] = mat[i][j]; writePos--; }
         }
-        for (int i = writePos; i >= 0; i--) {
-            mat[i][j] = CHOICES[rand() % NB_CHOICES];
-        }
+        // On comble le haut avec du random
+        for (int i = writePos; i >= 0; i--) mat[i][j] = CHOICES[rand() % NB_CHOICES];
     }
 }
 
 void stabiliserPlateau(char (*mat)[N], Contrat *c, int compterPoints) {
     int aSupprimer[N][N];
-    while (marquerAlignements(mat, aSupprimer)) {
-        appliquerGravite(mat, aSupprimer, c, compterPoints);
-    }
+    while (marquerAlignements(mat, aSupprimer)) appliquerGravite(mat, aSupprimer, c, compterPoints);
 }
 
 int main(void) {
     SetConsoleOutputCP(65001);
 
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+    cursorInfo.bVisible = 0;
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+
     char (*mat)[N] = malloc(sizeof *mat * N);
     if (!mat) return 1;
 
     srand((unsigned)time(NULL));
-
     Contrat monContrat;
     initContrat(&monContrat);
 
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            mat[i][j] = CHOICES[rand() % NB_CHOICES];
-        }
-    }
-
+    for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) mat[i][j] = CHOICES[rand() % NB_CHOICES];
     stabiliserPlateau(mat, &monContrat, 0);
-    printJeu(mat, &monContrat);
 
-    while (1) {
-        int i, j, k, l;
-        printf("Coord (L1 C1 L2 C2) ou 'q' pour quitter: ");
+    int curLig = 0, curCol = 0;
+    int selLig = -1, selCol = -1;
+    int running = 1;
 
-        if (scanf("%d %d %d %d", &i, &j, &k, &l) != 4) break;
-        i--; j--; k--; l--;
+    while (running) {
+        // 1. Affichage
+        printJeu(mat, &monContrat, curLig, curCol, selLig, selCol);
 
-        if (i<0||i>=N||j<0||j>=N||k<0||k>=N||l<0||l>=N) {
-            continue;
+        // 2. Vérification Condition Défaite
+        if (monContrat.coups >= monContrat.maxCoups) {
+            printf("\n\nPERDU ! Vous n'avez plus de coups.\n");
+            system("pause");
+            break;
         }
 
-        switchPos(mat, i, j, k, l);
-        stabiliserPlateau(mat, &monContrat, 1);
-        printJeu(mat, &monContrat);
+        // 3. Gestion Temps Réel (Boucle d'attente active)
+        while (!_kbhit()) {
+            Sleep(100); // Pause de 0.1s pour ne pas surchauffer le processeur
+            // On rafraichit l'écran uniquement pour le chrono
+            printJeu(mat, &monContrat, curLig, curCol, selLig, selCol);
+        }
+
+        // 4. Lecture Touche
+        int c = _getch();
+
+        if (c == 224 || c == 0) {
+            c = _getch();
+            switch(c) {
+                case KEY_UP:    if(curLig > 0) curLig--; break;
+                case KEY_DOWN:  if(curLig < N-1) curLig++; break;
+                case KEY_LEFT:  if(curCol > 0) curCol--; break;
+                case KEY_RIGHT: if(curCol < N-1) curCol++; break;
+            }
+        }
+        else if (c == KEY_SPACE) {
+            if (selLig == -1) {
+                selLig = curLig; selCol = curCol;
+            } else {
+                if (curLig == selLig && curCol == selCol) {
+                    selLig = -1; selCol = -1;
+                } else {
+                    // ECHANGE
+                    switchPos(mat, selLig, selCol, curLig, curCol);
+
+                    // --- INCREMENTATION DU COMPTEUR DE COUPS ---
+                    monContrat.coups++;
+                    // -------------------------------------------
+
+                    stabiliserPlateau(mat, &monContrat, 1);
+                    selLig = -1; selCol = -1;
+                }
+            }
+        }
+        else if (c == 'q' || c == 'Q' || c == KEY_Q) {
+            running = 0;
+        }
     }
 
     free(mat);
