@@ -96,12 +96,12 @@ int getHauteurVerticale(char (*mat)[N], int i, int j, int *top, int *bottom) {
     *top = i;
     *bottom = i;
 
-    // On monte tant que c'est le même type
+    // On monte tant que c'est pareil et qu'on ne sort pas de la grille
     while (*top > 0 && mat[*top - 1][j] == type) {
         (*top)--;
     }
 
-    // On descend tant que c'est le même type
+    // On descend tant que c'est pareil
     while (*bottom < N - 1 && mat[*bottom + 1][j] == type) {
         (*bottom)++;
     }
@@ -117,18 +117,27 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
 
     // forme H
     for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N - 3; j++) {
-            if (mat[i][j] == mat[i][j+1] && mat[i][j] == mat[i][j+2] && mat[i][j] == mat[i][j+3]) {
-                for (int k = 0; k < N-2; k++) {
-                    if (mat[k][j] == mat[k+1][j] && mat[k][j] == mat[k+2][j]) {
-                        aSupprimer[i][j] = 1;
-                        aSupprimer[i][j+1] = 1;
-                        aSupprimer[i][j+2] = 1;
-                        aSupprimer[k][j] = 1;
-                        aSupprimer[k+1][j] = 1;
-                        aSupprimer[k+2][j] = 1;
-                        trouve = 1;
-                    }
+        // On cherche un PONT horizontal de 3 items (j, j+1, j+2)
+        for (int j = 0; j < N - 2; j++) {
+            char type = mat[i][j];
+
+            // Vérifie le pont : [X][X][X]
+            if (mat[i][j+1] == type && mat[i][j+2] == type) {
+
+                // Le pont existe. Vérifions les PILIERS aux extrémités (j et j+2)
+                int topG, botG, topD, botD;
+                int hG = getHauteurVerticale(mat, i, j, &topG, &botG);     // Pilier Gauche
+                int hD = getHauteurVerticale(mat, i, j+2, &topD, &botD);   // Pilier Droit
+
+                // Si les deux piliers font au moins 3 de haut => C'EST UN H !
+                if (hG >= 3 && hD >= 3) {
+                    // On marque tout : le pont + les piliers entiers
+                    aSupprimer[i][j+1] = 1; // Milieu du pont
+
+                    for (int k = topG; k <= botG; k++) aSupprimer[k][j] = 1;   // Tout le pilier gauche
+                    for (int k = topD; k <= botD; k++) aSupprimer[k][j+2] = 1; // Tout le pilier droit
+
+                    trouve = 1;
                 }
             }
         }
@@ -157,6 +166,7 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
             }
         }
     }
+
     return trouve;
 }
 
@@ -215,6 +225,7 @@ int main(void) {
         printf("Coord (L1 C1 L2 C2) ou 'q' pour quitter: ");
 
         if (scanf("%d %d %d %d", &i, &j, &k, &l) != 4) break;
+        i--; j--; k--; l--;
 
         if (i<0||i>=N||j<0||j>=N||k<0||k>=N||l<0||l>=N) {
             continue;
