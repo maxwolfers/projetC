@@ -1,50 +1,51 @@
-# Makefile pour FarmHeroes
 # Compilateur
 CC = gcc
 
 # Options de compilation
-CFLAGS = -Wall -Wextra -std=c99 -g
+# -Wall -Wextra : Affiche tous les avertissements (très utile)
+# -g : Ajoute les infos de debug (utile pour gdb ou CLion)
+CFLAGS = -Wall -Wextra -g
 
-# Suffixe d'exécutable selon l'OS
+# --- DÉTECTION OS (Pour Windows) ---
 ifeq ($(OS),Windows_NT)
-  EXE := .exe
+    EXE = .exe
+    RM = del /Q  # Commande Windows pour supprimer
 else
-  EXE :=
+    EXE =
+    RM = rm -f   # Commande Linux/Mac pour supprimer
 endif
 
-# Nom de l'exécutable (portable)
-TARGET = farmheroes$(EXE)
+# Nom final de ton jeu
+TARGET = plantamitz$(EXE)
 
-# Fichiers sources
-SOURCES = main.c game.c board.c groups.c contract.c display.c input.c save.c
+# --- TES FICHIERS (C'est ici qu'on adapte) ---
+# Liste de tes fichiers .c
+SOURCES = main.c logique.c ui.c
 
-# Fichiers objets
+# Liste de tes fichiers .h (Pour que make recompile si tu changes un header)
+HEADERS = logique.h ui.h
+
+# Génération automatique de la liste des objets (.o)
 OBJECTS = $(SOURCES:.c=.o)
 
-# Fichiers headers
-HEADERS = config.h game.h board.h groups.h contract.h display.h input.h save.h
+# --- RÈGLES ---
 
-# Règle par défaut
+# Règle par défaut (quand tu tapes juste "make")
 all: $(TARGET)
 
-# Compilation de l'exécutable
+# Édition de liens (Création de l'exécutable final)
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 
-# Règle générique pour les fichiers objets
+# Compilation des fichiers objets (.c -> .o)
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Nettoyage
+# Nettoyage des fichiers temporaires et de l'exécutable
 clean:
-	rm -f $(OBJECTS) $(TARGET) savegame.dat
+	$(RM) *.o $(TARGET)
 
-# Réinstallation complète
+# Tout reconstruire de zéro
 rebuild: clean all
 
-# Installation (optionnel)
-install: $(TARGET)
-	cp $(TARGET) /usr/local/bin/
-
-.PHONY: all clean rebuild install
-
+.PHONY: all clean rebuild
