@@ -13,7 +13,8 @@ typedef enum {
     CMD_LEFT,
     CMD_RIGHT,
     CMD_SELECT, // Espace
-    CMD_QUIT    // Q
+    CMD_QUIT, // Q
+    CMD_SAVE   
 } Command;
 
 typedef struct {
@@ -34,5 +35,10 @@ typedef struct {
 void initJeu(char (*mat)[N], Contrat *c);
 void switchPos(char (*mat)[N], int i, int j, int k, int l);
 void stabiliserPlateau(char (*mat)[N], Contrat *c, int compterPoints);
+
+// Sauvegarde la grille et le contrat dans un fichier binaire
+int sauvegarderPartie(char (*mat)[N], Contrat *c);
+// Charge la grille et le contrat depuis le fichier
+int chargerPartie(char (*mat)[N], Contrat *c);
 
 #endif

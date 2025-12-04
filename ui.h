@@ -6,6 +6,8 @@
 // Config initiale (UTF-8, Curseur caché)
 void initConsole();
 
+void gotoligcol(int lig, int col);
+
 // Affiche tout le jeu (Grille + HUD + Chrono)
 // clear = 1 (Nettoyage total), clear = 0 (Rafraichissement simple)
 void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, int selCol, int clear);

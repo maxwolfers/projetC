@@ -11,6 +11,7 @@
 #define KEY_RIGHT 77
 #define KEY_SPACE 32
 #define KEY_Q 113
+#define KEY_S 115
 
 void initConsole() {
     SetConsoleOutputCP(65001); // UTF-8
@@ -85,8 +86,8 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         printf("\n");
     }
     Color(15, 0);
-    printf("\n[FLECHES]: Bouger  \n[ESPACE]: Selectionner  \n[Q]: Menu\n\n");
-    for(int k=0; k<3; k++) printf("                                                                      \n");
+    printf("\n[FLECHES]: Bouger  [ESPACE]: Select  [S]: Sauver  [Q]: Menu\n\n");
+    for(int k=0; k<3; k++) printf("                                                                     \n");
 }
 
 void afficherMenu() {
@@ -119,6 +120,7 @@ Command recupererCommande() {
     } 
     else if (c == KEY_SPACE) return CMD_SELECT;
     else if (c == 'q' || c == 'Q' || c == KEY_Q) return CMD_QUIT;
+    else if (c == 's' || c == 'S' || c == KEY_S) return CMD_SAVE; // <--- AJOUT
     
     return CMD_NONE;
 }
