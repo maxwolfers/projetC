@@ -86,8 +86,9 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         printf("\n");
     }
     Color(15, 0);
-    printf("\n[FLECHES]: Bouger  [ESPACE]: Select  [S]: Sauver  [Q]: Menu\n\n");
-    for(int k=0; k<3; k++) printf("                                                                     \n");
+    // Ajout de l'indication de la touche S
+    printf("\n[FLECHES]: Bouger  [ESPACE]: Selectionner\n[S]: Sauvegarder   [Q]: Menu\n\n");
+    for(int k=0; k<3; k++) printf("                                                                      \n");
 }
 
 void afficherMenu() {
@@ -97,7 +98,7 @@ void afficherMenu() {
     printf("      PLANTAMITZ 2025 - MENU\n");
     printf("========================================\n\n");
     printf("   1. Nouvelle partie 🌞\n");
-    printf("   2. Continuer (WIP)\n");
+    printf("   2. Continuer la partie\n"); // WIP retiré
     printf("   3. Quitter\n\n");
     printf("Votre choix : ");
 }
@@ -119,8 +120,8 @@ Command recupererCommande() {
         }
     } 
     else if (c == KEY_SPACE) return CMD_SELECT;
+    else if (c == 's' || c == 'S' || c == KEY_S) return CMD_SAVE; // Nouvelle touche
     else if (c == 'q' || c == 'Q' || c == KEY_Q) return CMD_QUIT;
-    else if (c == 's' || c == 'S' || c == KEY_S) return CMD_SAVE; // <--- AJOUT
     
     return CMD_NONE;
 }

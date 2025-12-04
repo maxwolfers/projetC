@@ -1,7 +1,6 @@
 #include <stdlib.h>
-#include <stdio.h> // Pour NULL
+#include <stdio.h> 
 #include "logique.h"
-#include <errno.h>
 
 const char CHOICES[] = {'S', 'F', 'P', 'O', 'M'};
 const int NB_CHOICES = 5;
@@ -107,66 +106,39 @@ void stabiliserPlateau(char (*mat)[N], Contrat *c, int compterPoints) {
     while (marquerAlignements(mat, aSupprimer)) appliquerGravite(mat, aSupprimer, c, compterPoints);
 }
 
+// --- GESTION DES FICHIERS (SAUVEGARDE) ---
+
 int sauvegarderPartie(char (*mat)[N], Contrat *c) {
-    // Ouverture en mode binaire écriture "wb" (Windows Binary) [cite: 186, 440]
+    // Ouverture en mode binaire écriture ("wb")
     FILE *pf = fopen("savegame.dat", "wb");
-    
-    // Vérification de l'ouverture [cite: 690]
     if (pf == NULL) {
         perror("Erreur sauvegarde");
         return 0;
     }
 
-    // 1. Écriture du contrat (Score, coups, missions...) [cite: 529]
-    // On écrit 1 élément de la taille de la structure Contrat
-    if (fwrite(c, sizeof(Contrat), 1, pf) != 1) {
-        perror("Erreur ecriture contrat");
-        fclose(pf);
-        return 0;
-    }
+    // Écriture directe de la mémoire (Tableau + Structure)
+    fwrite(mat, sizeof(char), N * N, pf);
+    fwrite(c, sizeof(Contrat), 1, pf);
 
-    // 2. Écriture de la matrice (Grille de jeu) [cite: 458]
-    // La matrice est contiguë en mémoire (allouée dynamiquement ou statiquement)
-    // On écrit N*N caractères
-    if (fwrite(mat, sizeof(char) * N * N, 1, pf) != 1) {
-        perror("Erreur ecriture plateau");
-        fclose(pf);
-        return 0;
-    }
-
-    // Fermeture propre [cite: 767]
     fclose(pf);
     return 1;
 }
 
 int chargerPartie(char (*mat)[N], Contrat *c) {
-    // Ouverture en mode binaire lecture "rb" [cite: 440]
+    // Ouverture en mode binaire lecture ("rb")
     FILE *pf = fopen("savegame.dat", "rb");
-    
     if (pf == NULL) {
-        // Pas d'erreur critique ici, le fichier n'existe peut-être pas encore
-        return 0; 
+        return 0; // Fichier n'existe pas
     }
 
-    // 1. Lecture du contrat [cite: 549]
-    if (fread(c, sizeof(Contrat), 1, pf) != 1) {
-        perror("Erreur lecture contrat");
-        fclose(pf);
-        return 0;
-    }
+    // Lecture directe vers la mémoire
+    fread(mat, sizeof(char), N * N, pf);
+    fread(c, sizeof(Contrat), 1, pf);
 
-    // 2. Lecture de la matrice
-    if (fread(mat, sizeof(char) * N * N, 1, pf) != 1) {
-        perror("Erreur lecture plateau");
-        fclose(pf);
-        return 0;
-    }
-    
-    // Astuce : Le temps "debut" sauvegardé est une date absolue (timestamp).
-    // Pour que le chrono ne saute pas à une valeur énorme, on réinitialise
-    // le temps de début relatif au temps actuel moins le temps déjà joué.
-    // (Non couvert explicitement par le chapitre 14 mais nécessaire pour la logique du jeu)
-    // Pour l'instant, on laisse tel quel, le chrono affichera le temps réel écoulé depuis la 1ère partie.
+    // Petit ajustement pour le chrono : on remet le temps de début
+    // par rapport au temps actuel pour ne pas avoir un chrono géant
+    // (Note: pour faire parfait il faudrait sauvegarder le "temps écoulé")
+    c->debut = time(NULL); 
 
     fclose(pf);
     return 1;

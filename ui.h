@@ -6,6 +6,7 @@
 // Config initiale (UTF-8, Curseur caché)
 void initConsole();
 
+// Déplace le curseur à une position précise (Nouveau !)
 void gotoligcol(int lig, int col);
 
 // Affiche tout le jeu (Grille + HUD + Chrono)

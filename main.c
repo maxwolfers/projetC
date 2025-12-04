@@ -4,6 +4,7 @@
 #include "logique.h"
 #include "ui.h"
 
+// charger = 0 (Nouvelle partie), charger = 1 (Charger savegame.dat)
 void jouerPartie(int charger) {
     char (*mat)[N] = malloc(sizeof *mat * N);
     if (!mat) return;
@@ -11,20 +12,18 @@ void jouerPartie(int charger) {
     Contrat monContrat;
 
     if (charger) {
-        // Tente de charger. Si échoue (fichier inexistant), on init une nouvelle partie
         if (!chargerPartie(mat, &monContrat)) {
-            printf("Aucune sauvegarde trouvee ou erreur de lecture !\n");
-            Sleep(1500); // Laisse le temps de lire
-            initJeu(mat, &monContrat);
-            stabiliserPlateau(mat, &monContrat, 0);
+            printf("\nAucune sauvegarde trouvee !\n");
+            Sleep(1500);
+            free(mat);
+            return;
         }
     } else {
-        // Nouvelle partie classique
         initJeu(mat, &monContrat);
         stabiliserPlateau(mat, &monContrat, 0);
     }
 
-    system("cls");
+    system("cls"); 
 
     int curLig = 0, curCol = 0, selLig = -1, selCol = -1;
     int running = 1;
@@ -32,16 +31,15 @@ void jouerPartie(int charger) {
     printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
 
     while (running) {
-        // ... (gestion fin de partie inchangée) ...
         if (monContrat.coups >= monContrat.maxCoups) {
-             // ... code perdu ...
-             break;
+            printf("\n\nPERDU ! Plus de coups.\n");
+            system("pause");
+            break;
         }
 
         while (!toucheAppuyee()) {
-             // ... code attente ...
-             Sleep(100);
-             printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 0);
+            Sleep(100);
+            printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 0);
         }
 
         Command cmd = recupererCommande();
@@ -51,23 +49,31 @@ void jouerPartie(int charger) {
             case CMD_DOWN:  if(curLig < N-1) curLig++; break;
             case CMD_LEFT:  if(curCol > 0) curCol--; break;
             case CMD_RIGHT: if(curCol < N-1) curCol++; break;
-            case CMD_QUIT:  running = 0; break;
             
-            // --- AJOUT GESTION SAUVEGARDE ---
             case CMD_SAVE:
                 if (sauvegarderPartie(mat, &monContrat)) {
-                    // Petit feedback visuel rapide
+                    // Petit message flash pour confirmer
                     gotoligcol(N + 4, 0);
-                    printf(">> PARTIE SAUVEGARDEE ! <<");
+                    printf(">> Partie Sauvegardee ! <<");
                     Sleep(1000);
-                    // On efface le message
-                    gotoligcol(N + 4, 0);
-                    printf("                          ");
                 }
                 break;
 
+            case CMD_QUIT:  running = 0; break;
+            
             case CMD_SELECT:
-                // ... (code sélection inchangé) ...
+                if (selLig == -1) {
+                    selLig = curLig; selCol = curCol;
+                } else {
+                    if (curLig == selLig && curCol == selCol) {
+                        selLig = -1; selCol = -1;
+                    } else {
+                        switchPos(mat, selLig, selCol, curLig, curCol);
+                        monContrat.coups++;
+                        stabiliserPlateau(mat, &monContrat, 1);
+                        selLig = -1; selCol = -1;
+                    }
+                }
                 break;
             default: break;
         }
@@ -89,8 +95,8 @@ int main(void) {
         }
 
         switch (choix) {
-            case 1: jouerPartie(0); break; // 0 = Nouvelle partie
-            case 2: jouerPartie(1); break; // 1 = Charger partie
+            case 1: jouerPartie(0); break; // Nouvelle partie
+            case 2: jouerPartie(1); break; // Charger
             case 3: return 0;
         }
     }
