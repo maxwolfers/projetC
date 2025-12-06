@@ -4,8 +4,9 @@
 #include <windows.h>
 #include "logique.h"
 #include "ui.h"
+#include "audio.h"
 
-void jouerPartie(int charger) {
+void jouerPartie(int charger, int *musiqueActive) {
     char (*mat)[N] = malloc(sizeof *mat * N);
     if (!mat) return;
 
@@ -31,7 +32,6 @@ void jouerPartie(int charger) {
     printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
 
     while (running) {
-        // --- VICTOIRE ---
         if (monContrat.missions[0].mange >= monContrat.missions[0].aManger &&
             monContrat.missions[1].mange >= monContrat.missions[1].aManger &&
             monContrat.missions[2].mange >= monContrat.missions[2].aManger)
@@ -50,7 +50,6 @@ void jouerPartie(int charger) {
             printf("Appuyez sur une touche pour le niveau %d...", monContrat.niveau + 1);
             getch();
 
-            // Sauvegarde des stats avant reset
             int scoreActuel = monContrat.score;
             int viesActuelles = monContrat.vies;
 
@@ -90,8 +89,6 @@ void jouerPartie(int charger) {
 
                         initJeu(mat, &monContrat, niveauActuel);
 
-                        // On restaure les vies (sinon initJeu remettrait à 5 au niv 1)
-                        // et le score (pour ne pas tout perdre)
                         monContrat.vies = viesRestantes;
                         monContrat.score = scoreActuel;
 
@@ -129,6 +126,16 @@ void jouerPartie(int charger) {
                 }
                 break;
 
+            case CMD_MUTE:
+                if (*musiqueActive) {
+                    arreterMusique();
+                    *musiqueActive = 0;
+                } else {
+                    lancerMusique("musique.wav");
+                    *musiqueActive = 1;
+                }
+                break;
+
             case CMD_QUIT:  running = 0; break;
 
             case CMD_SELECT:
@@ -156,18 +163,33 @@ int main(void) {
     srand((unsigned)time(NULL));
     initConsole();
 
-    int choix = 0;
-    while (1) {
-        afficherMenu();
-        if (scanf(" %d", &choix) != 1) {
-            while(getchar() != '\n');
-            continue;
-        }
+    int musiqueActive = 0;
+    // lancerMusique("musique.wav"); musiqueActive = 1; // Decommente pour lancer au debut
 
-        switch (choix) {
-            case 1: jouerPartie(0); break;
-            case 2: jouerPartie(1); break;
-            case 3: return 0;
+    int running = 1;
+    while (running) {
+        afficherMenu(musiqueActive);
+
+        int key = _getch();
+
+        if (key == '1') {
+            jouerPartie(0, &musiqueActive);
+        }
+        else if (key == '2') {
+            jouerPartie(1, &musiqueActive);
+        }
+        else if (key == '3') {
+            running = 0;
+        }
+        else if (key == 'm' || key == 'M') {
+            // Bascule Musique dans le menu
+            if (musiqueActive) {
+                arreterMusique();
+                musiqueActive = 0;
+            } else {
+                lancerMusique("musique.wav");
+                musiqueActive = 1;
+            }
         }
     }
     return 0;

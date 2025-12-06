@@ -13,7 +13,8 @@ typedef enum {
     CMD_RIGHT,
     CMD_SELECT,
     CMD_QUIT,
-    CMD_SAVE
+    CMD_SAVE,
+    CMD_MUTE
 } Command;
 
 typedef struct {

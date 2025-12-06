@@ -11,6 +11,7 @@
 #define KEY_SPACE 32
 #define KEY_Q 113
 #define KEY_S 115
+#define KEY_M 109
 
 void initConsole() {
     SetConsoleOutputCP(65001);
@@ -70,7 +71,7 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         if (i == 0)      printf("=== NIVEAU %d ===", c->niveau);
         else if (i == 1) {
             printf("VIES : ");
-            Color(12, 0); // Rouge pour les cœurs
+            Color(12, 0);
             for(int v=0; v<c->vies; v++) printf("♥ ");
             Color(15, 0);
         }
@@ -89,7 +90,8 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         printf("\n");
     }
     Color(15, 0);
-    printf("\n[FLECHES]: Bouger  [ESPACE]: Selectionner\n[S]: Sauvegarder   [Q]: Menu\n\n");
+    // AJOUT DE [M]: Musique ICI
+    printf("\n[FLECHES]: Bouger  [ESPACE]: Selectionner\n[S]: Sauvegarder   [M]: Musique   [Q]: Menu\n\n");
     for(int k=0; k<3; k++) printf("                                                                      \n");
 }
 
@@ -99,19 +101,29 @@ void afficherMenu(int musiqueActive) {
     printf("\n========================================\n");
     printf("      PLANTAMITZ 2025 - MENU\n");
     printf("========================================\n\n");
+
     printf("   1. Nouvelle partie \n");
     printf("   2. Charger une partie\n");
-    
+    printf("   3. Quitter\n\n"); // On enlève l'option musique de la liste principale pour la mettre à part
+
+    printf("Votre choix (1-3) : ");
+
+    // --- AFFICHAGE ETAT MUSIQUE A DROITE ---
+    gotoligcol(5, 50); // Ligne 5, Colonne 50 (A droite)
+    printf("--------------------------");
+    gotoligcol(6, 50);
     if (musiqueActive) {
-        printf("   3. Musique : [ON] (Desactiver)\n");
+        printf("| MUSIQUE : [ON]  🔊     |");
     } else {
-        printf("   3. Musique : [OFF] (Activer)\n");
+        printf("| MUSIQUE : [OFF] 🔇     |");
     }
+    gotoligcol(7, 50);
+    printf("| [M] pour changer       |");
+    gotoligcol(8, 50);
+    printf("--------------------------");
 
-    printf("   4. Quitter\n\n");
-    printf("Votre choix : ");
+    gotoligcol(9, 21);
 }
-
 
 int toucheAppuyee() {
     return _kbhit();
@@ -131,5 +143,6 @@ Command recupererCommande() {
     else if (c == KEY_SPACE) return CMD_SELECT;
     else if (c == 's' || c == 'S' || c == KEY_S) return CMD_SAVE;
     else if (c == 'q' || c == 'Q' || c == KEY_Q) return CMD_QUIT;
+    else if (c == 'm' || c == 'M' || c == KEY_M) return CMD_MUTE;
     return CMD_NONE;
 }
