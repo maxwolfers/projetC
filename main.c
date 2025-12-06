@@ -11,7 +11,6 @@ void jouerPartie(int charger) {
 
     Contrat monContrat;
 
-    // 1. Initialisation (Chargement ou Niveau 1)
     if (charger) {
         if (!chargerPartie(mat, &monContrat)) {
             printf("\nAucune sauvegarde trouvee !\n");
@@ -20,7 +19,7 @@ void jouerPartie(int charger) {
             return;
         }
     } else {
-        initJeu(mat, &monContrat, 1); // On commence au niveau 1
+        initJeu(mat, &monContrat, 1);
         stabiliserPlateau(mat, &monContrat, 0);
     }
 
@@ -32,55 +31,83 @@ void jouerPartie(int charger) {
     printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
 
     while (running) {
-
-        // --- VERIFICATION VICTOIRE (CONTRAT REMPLI) ---
+        // --- VICTOIRE ---
         if (monContrat.missions[0].mange >= monContrat.missions[0].aManger &&
             monContrat.missions[1].mange >= monContrat.missions[1].aManger &&
             monContrat.missions[2].mange >= monContrat.missions[2].aManger)
         {
-            // Niveau terminé !
             system("cls");
             printf("\n\n========================================\n");
             printf("      NIVEAU %d TERMINE ! BRAVO ! \n", monContrat.niveau);
             printf("========================================\n\n");
 
             if (monContrat.niveau >= 3) {
-                printf("FELICITATIONS ! VOUS AVEZ FINI LE JEU (3 Niveaux) !\n");
+                printf("FELICITATIONS ! VOUS AVEZ FINI LE JEU !\n");
                 system("pause");
-                break; // Fin du jeu
+                break;
             }
 
-            printf("Voulez-vous passer au niveau %d ? (O/N) : ", monContrat.niveau + 1);
+            printf("Appuyez sur une touche pour le niveau %d...", monContrat.niveau + 1);
+            getch();
 
-            // Petite boucle pour attendre O ou N
-            while(1) {
-                char c = _getch();
-                if (c == 'o' || c == 'O') {
-                    // Passage au niveau suivant
-                    int scoreGardé = monContrat.score; // On garde le score ? (optionnel)
-                    initJeu(mat, &monContrat, monContrat.niveau + 1);
-                    monContrat.score = scoreGardé; // On remet le score cumulé
+            // Sauvegarde des stats avant reset
+            int scoreActuel = monContrat.score;
+            int viesActuelles = monContrat.vies;
 
-                    stabiliserPlateau(mat, &monContrat, 0);
-                    printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
-                    break;
-                }
-                else if (c == 'n' || c == 'N') {
-                    running = 0; // Quitter vers menu
-                    break;
-                }
-            }
-            if (!running) break; // Sortir de la boucle principale
+            initJeu(mat, &monContrat, monContrat.niveau + 1);
+
+            monContrat.score = scoreActuel;
+            monContrat.vies = viesActuelles;
+
+            stabiliserPlateau(mat, &monContrat, 0);
+            printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
         }
 
-        // --- VERIFICATION DEFAITE ---
         if (monContrat.coups >= monContrat.maxCoups) {
-            printf("\n\nPERDU ! Plus de coups.\n");
-            system("pause");
-            break;
+            monContrat.vies--;
+
+            system("cls");
+            Color(12, 0);
+            printf("\n========================================\n");
+            printf("      PLUS DE COUPS ! VIE PERDUE \n");
+            printf("========================================\n\n");
+            Color(15, 0);
+
+            if (monContrat.vies <= 0) {
+                printf("GAME OVER ! Vous n'avez plus de vies.\n");
+                system("pause");
+                break;
+            } else {
+                printf("Il vous reste %d vies.\n", monContrat.vies);
+                printf("Voulez-vous recommencer ce niveau ? (O/N) : ");
+
+                while(1) {
+                    char c = getch();
+                    if (c == 'o' || c == 'O') {
+                        int scoreActuel = monContrat.score;
+                        int viesRestantes = monContrat.vies;
+                        int niveauActuel = monContrat.niveau;
+
+                        initJeu(mat, &monContrat, niveauActuel);
+
+                        // On restaure les vies (sinon initJeu remettrait à 5 au niv 1)
+                        // et le score (pour ne pas tout perdre)
+                        monContrat.vies = viesRestantes;
+                        monContrat.score = scoreActuel;
+
+                        stabiliserPlateau(mat, &monContrat, 0);
+                        printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 1);
+                        break;
+                    }
+                    else if (c == 'n' || c == 'N') {
+                        running = 0;
+                        break;
+                    }
+                }
+                if (!running) break;
+            }
         }
 
-        // --- ATTENTE ET RAFRAICHISSEMENT CHRONO ---
         while (!toucheAppuyee()) {
             Sleep(100);
             printJeu(mat, &monContrat, curLig, curCol, selLig, selCol, 0);
@@ -97,13 +124,13 @@ void jouerPartie(int charger) {
             case CMD_SAVE:
                 if (sauvegarderPartie(mat, &monContrat)) {
                     gotoligcol(N + 4, 0);
-                    printf(">> Partie Sauvegardee (Niveau %d) ! <<", monContrat.niveau);
+                    printf(">> Partie Sauvegardee ! <<");
                     Sleep(1000);
                 }
                 break;
 
             case CMD_QUIT:  running = 0; break;
-            
+
             case CMD_SELECT:
                 if (selLig == -1) {
                     selLig = curLig; selCol = curCol;
@@ -138,8 +165,8 @@ int main(void) {
         }
 
         switch (choix) {
-            case 1: jouerPartie(0); break; // Nouvelle partie
-            case 2: jouerPartie(1); break; // Charger
+            case 1: jouerPartie(0); break;
+            case 2: jouerPartie(1); break;
             case 3: return 0;
         }
     }

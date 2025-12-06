@@ -5,7 +5,6 @@
 const char CHOICES[] = {'S', 'F', 'P', 'O', 'M'};
 const int NB_CHOICES = 5;
 
-// --- FONCTIONS INTERNES (Privées) ---
 int getHauteurVerticale(char (*mat)[N], int i, int j, int *top, int *bottom) {
     char type = mat[i][j];
     *top = i; *bottom = i;
@@ -34,7 +33,6 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
     int trouve = 0;
     for(int i=0; i<N; i++) for(int j=0; j<N; j++) aSupprimer[i][j] = 0;
 
-    // Detection H (Géometrique)
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N - 2; j++) {
             char type = mat[i][j];
@@ -51,7 +49,6 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
             }
         }
     }
-    // Horizontal
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N - 2; j++) {
             if (mat[i][j] == mat[i][j+1] && mat[i][j] == mat[i][j+2]) {
@@ -59,7 +56,6 @@ int marquerAlignements(char (*mat)[N], int (*aSupprimer)[N]) {
             }
         }
     }
-    // Vertical
     for (int i = 0; i < N - 2; i++) {
         for (int j = 0; j < N; j++) {
             if (mat[i][j] == mat[i+1][j] && mat[i][j] == mat[i+2][j]) {
@@ -83,41 +79,30 @@ void appliquerGravite(char (*mat)[N], int (*aSupprimer)[N], Contrat *c, int upda
     }
 }
 
-// --- FONCTIONS PUBLIQUES ---
 void initJeu(char (*mat)[N], Contrat *c, int niveau) {
     char tempChoices[5];
     for(int i=0; i<5; i++) tempChoices[i] = CHOICES[i];
     shuffle(tempChoices, 5);
 
-    c->score = 0;
+    // On ne reset le score et les vies que si c'est le niveau 1 (début de partie)
+    if (niveau == 1) {
+        c->score = 0;
+        c->vies = 5; // On commence avec 5 vies
+    }
+
     c->coups = 0;
     c->debut = time(NULL);
-    c->niveau = niveau; // On stocke le niveau actuel
+    c->niveau = niveau;
 
-    // --- DIFFICULTÉ PROGRESSIVE ---
-    if (niveau == 1) {
-        // Niveau 1 : Facile (Standard)
-        c->maxCoups = 15;
-        c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 10; c->missions[0].mange = 0;
-        c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 5;  c->missions[1].mange = 0;
-        c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 3;  c->missions[2].mange = 0;
-    }
-    else if (niveau == 2) {
-        // Niveau 2 : Moyen (Contrats plus gros)
-        c->maxCoups = 20;
-        c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 15; c->missions[0].mange = 0;
-        c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 10; c->missions[1].mange = 0;
-        c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 5;  c->missions[2].mange = 0;
-    }
-    else {
-        // Niveau 3 : Difficile (Gros contrats)
-        c->maxCoups = 25;
-        c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 20; c->missions[0].mange = 0;
-        c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 15; c->missions[1].mange = 0;
-        c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 10; c->missions[2].mange = 0;
-    }
+    if (niveau == 1) {      c->maxCoups = 15; c->missions[0].aManger = 10; c->missions[1].aManger = 5; c->missions[2].aManger = 3; }
+    else if (niveau == 2) { c->maxCoups = 20; c->missions[0].aManger = 15; c->missions[1].aManger = 10; c->missions[2].aManger = 5; }
+    else {                  c->maxCoups = 25; c->missions[0].aManger = 20; c->missions[1].aManger = 15; c->missions[2].aManger = 10; }
 
-    // Remplissage de la grille
+    // Init missions
+    c->missions[0].type = tempChoices[0]; c->missions[0].mange = 0;
+    c->missions[1].type = tempChoices[1]; c->missions[1].mange = 0;
+    c->missions[2].type = tempChoices[2]; c->missions[2].mange = 0;
+
     for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) mat[i][j] = CHOICES[rand() % NB_CHOICES];
 }
 
@@ -130,40 +115,21 @@ void stabiliserPlateau(char (*mat)[N], Contrat *c, int compterPoints) {
     while (marquerAlignements(mat, aSupprimer)) appliquerGravite(mat, aSupprimer, c, compterPoints);
 }
 
-// --- GESTION DES FICHIERS (SAUVEGARDE) ---
-
 int sauvegarderPartie(char (*mat)[N], Contrat *c) {
-    // Ouverture en mode binaire écriture ("wb")
     FILE *pf = fopen("savegame.dat", "wb");
-    if (pf == NULL) {
-        perror("Erreur sauvegarde");
-        return 0;
-    }
-
-    // Écriture directe de la mémoire (Tableau + Structure)
+    if (!pf) return 0;
     fwrite(mat, sizeof(char), N * N, pf);
     fwrite(c, sizeof(Contrat), 1, pf);
-
     fclose(pf);
     return 1;
 }
 
 int chargerPartie(char (*mat)[N], Contrat *c) {
-    // Ouverture en mode binaire lecture ("rb")
     FILE *pf = fopen("savegame.dat", "rb");
-    if (pf == NULL) {
-        return 0; // Fichier n'existe pas
-    }
-
-    // Lecture directe vers la mémoire
+    if (!pf) return 0;
     fread(mat, sizeof(char), N * N, pf);
     fread(c, sizeof(Contrat), 1, pf);
-
-    // Petit ajustement pour le chrono : on remet le temps de début
-    // par rapport au temps actuel pour ne pas avoir un chrono géant
-    // (Note: pour faire parfait il faudrait sauvegarder le "temps écoulé")
-    c->debut = time(NULL); 
-
+    c->debut = time(NULL);
     fclose(pf);
     return 1;
 }

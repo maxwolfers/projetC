@@ -13,6 +13,7 @@ ifeq ($(OS),Windows_NT)
 else
     EXE =
     RM = rm -f   # Commande Linux/Mac pour supprimer
+    LIBS = -lwinmm
 endif
 
 # Nom final de ton jeu
@@ -20,10 +21,10 @@ TARGET = plantamitz$(EXE)
 
 # --- TES FICHIERS (C'est ici qu'on adapte) ---
 # Liste de tes fichiers .c
-SOURCES = main.c logique.c ui.c
+SOURCES = main.c logique.c ui.c audio.c
 
 # Liste de tes fichiers .h (Pour que make recompile si tu changes un header)
-HEADERS = logique.h ui.h
+HEADERS = logique.h ui.h audio.h
 
 # Génération automatique de la liste des objets (.o)
 OBJECTS = $(SOURCES:.c=.o)

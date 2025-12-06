@@ -4,7 +4,6 @@
 #include <conio.h>
 #include "ui.h"
 
-// Touches Windows (Interne au fichier .c)
 #define KEY_UP 72
 #define KEY_DOWN 80
 #define KEY_LEFT 75
@@ -14,10 +13,10 @@
 #define KEY_S 115
 
 void initConsole() {
-    SetConsoleOutputCP(65001); // UTF-8
+    SetConsoleOutputCP(65001);
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
-    cursorInfo.bVisible = 0; // Cache le curseur
+    cursorInfo.bVisible = 0;
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 }
 
@@ -61,21 +60,25 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
             int bg = 0, txt = 15;
             if (i == selLig && j == selCol) { bg = 15; txt = 0; }
             else if (i == curLig && j == curCol) { bg = 1; txt = 15; }
-            
+
             Color(txt, bg);
-            printf(" ");
-            printEmoji(mat[i][j]);
-            printf(" ");
+            printf(" "); printEmoji(mat[i][j]); printf(" ");
             Color(15, 0);
         }
-        
+
         printf("        ");
-        if (i == 0) printf("=== NIVEAU %d ===", c->niveau);
-        else if (i == 1) printf("SCORE : %d", c->score);
+        if (i == 0)      printf("=== NIVEAU %d ===", c->niveau);
+        else if (i == 1) {
+            printf("VIES : ");
+            Color(12, 0); // Rouge pour les cœurs
+            for(int v=0; v<c->vies; v++) printf("♥ ");
+            Color(15, 0);
+        }
+        else if (i == 2) printf("SCORE : %d", c->score);
         else if (i == 3) { printf("[ "); printEmoji(c->missions[0].type); printf(" ] : %d/%d", c->missions[0].mange, c->missions[0].aManger); }
         else if (i == 4) { printf("[ "); printEmoji(c->missions[1].type); printf(" ] : %d/%d", c->missions[1].mange, c->missions[1].aManger); }
         else if (i == 5) { printf("[ "); printEmoji(c->missions[2].type); printf(" ] : %d/%d", c->missions[2].mange, c->missions[2].aManger); }
-        
+
         gotoligcol(i + 2, 75);
         if (i == 0) printf("CHRONO : %02d:%02d", elapsed / 60, elapsed % 60);
         else if (i == 3) {
@@ -86,7 +89,6 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         printf("\n");
     }
     Color(15, 0);
-    // Ajout de l'indication de la touche S
     printf("\n[FLECHES]: Bouger  [ESPACE]: Selectionner\n[S]: Sauvegarder   [Q]: Menu\n\n");
     for(int k=0; k<3; k++) printf("                                                                      \n");
 }
@@ -98,7 +100,7 @@ void afficherMenu() {
     printf("      PLANTAMITZ 2025 - MENU\n");
     printf("========================================\n\n");
     printf("   1. Nouvelle partie 🌞\n");
-    printf("   2. Continuer la partie\n"); // WIP retiré
+    printf("   2. Continuer la partie\n");
     printf("   3. Quitter\n\n");
     printf("Votre choix : ");
 }
@@ -109,7 +111,6 @@ int toucheAppuyee() {
 
 Command recupererCommande() {
     int c = _getch();
-    
     if (c == 224 || c == 0) {
         c = _getch();
         switch(c) {
@@ -118,10 +119,9 @@ Command recupererCommande() {
             case KEY_LEFT: return CMD_LEFT;
             case KEY_RIGHT: return CMD_RIGHT;
         }
-    } 
+    }
     else if (c == KEY_SPACE) return CMD_SELECT;
-    else if (c == 's' || c == 'S' || c == KEY_S) return CMD_SAVE; // Nouvelle touche
+    else if (c == 's' || c == 'S' || c == KEY_S) return CMD_SAVE;
     else if (c == 'q' || c == 'Q' || c == KEY_Q) return CMD_QUIT;
-    
     return CMD_NONE;
 }
