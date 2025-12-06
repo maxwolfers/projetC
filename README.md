@@ -1,29 +1,35 @@
-# FarmHeroes - Jeu de Match-3 en Console
+# Plantamitz - Jeu de Match-3 en Console
 
 ## Description
 
-FarmHeroes est un jeu de type "match-3" inspiré de FarmHeroes, adapté pour fonctionner en mode console. Le but est d'aligner des items pour les faire disparaître et remplir des contrats dans un nombre limité de coups et de temps.
+Plantamitz est un jeu de type "match-3" inspiré de FarmHeroes, adapté pour fonctionner en mode console. Le but est d'aligner des items pour les faire disparaître et remplir des contrats dans un nombre limité de coups et de temps.
 
 ## Caractéristiques
 
-- Plateau de jeu 25x45 avec 5 types d'items colorés (Soleil, Fraise, Pomme, Oignon, Mandarine)
+- Plateau de jeu 10 x 10 avec 5 types d'items colorés (Soleil, Fraise, Pomme, Oignon, Mandarine)
 - Système de contrats avec objectifs variés par niveau
 - Détection de groupes : 3+, 4, 6, H, rectangle
 - Système de gravité automatique
 - Gestion du temps et des coups
 - Système de vies (5 vies maximum)
 - Sauvegarde de progression
-- Interface console avec couleurs ANSI
+- Interface console avec emojis ANSI
 
-## Compilation
+
+
+
+# Compilation
 
 Le projet utilise un Makefile pour la compilation :
+
+
+## MAC
 
 ```bash
 make
 ```
 
-Cela créera l'exécutable `farmheroes`.
+Cela créera l'exécutable `Plantamitz`.
 
 Pour nettoyer les fichiers compilés :
 
@@ -37,22 +43,49 @@ Pour recompiler depuis le début :
 make rebuild
 ```
 
-## Utilisation
+### Utilisation
 
 Lancer le jeu :
 
 ```bash
-./farmheroes
+./Plantamitz
 ```
+
+
+## Windows
+
+```bash
+wingw32-make
+```
+
+Cela créera l'exécutable `Plantamitz.exe`.
+
+Pour nettoyer les fichiers compilés :
+
+```bash
+wingw32-make clean
+```
+
+### Utilisation
+
+Lancer le jeu :
+
+```bash
+.\Plantamitz.exe
+```
+
+
 
 ### Contrôles
 
-- **z** ou **flèche haut** : Déplacer le curseur vers le haut
-- **s** ou **flèche bas** : Déplacer le curseur vers le bas
-- **q** ou **flèche gauche** : Déplacer le curseur vers la gauche
-- **d** ou **flèche droite** : Déplacer le curseur vers la droite
+- **flèche haut** : Déplacer le curseur vers le haut
+- **flèche bas** : Déplacer le curseur vers le bas
+- **flèche gauche** : Déplacer le curseur vers la gauche
+- **flèche droite** : Déplacer le curseur vers la droite
 - **ESPACE** : Sélectionner/désélectionner un item, puis échanger avec un item adjacent
-- **x** : Quitter le jeu
+- **q** : Quitter le jeu
+- **s** : sauvegarder la partie
+- **m** : activer / désactiver le son
 
 ### Règles du jeu
 
@@ -71,31 +104,26 @@ Lancer le jeu :
 
 ```
 .
-├── config.h          # Constantes et configuration
-├── board.h/c         # Gestion du plateau de jeu
-├── groups.h/c        # Détection et suppression des groupes
-├── contract.h/c      # Gestion des contrats
-├── display.h/c       # Affichage et interface
-├── input.h/c         # Gestion des entrées clavier
-├── save.h/c          # Sauvegarde/chargement
-├── game.h/c          # Logique principale du jeu
+├── interface.h/c          # toute la partie visible par l'utilisateur
+├── logique.h/c          # Logique principale du jeu
 ├── main.c            # Programme principal
+├── audio.h/c          # gestion d'audio
+├── README.md          # détails du projets
+├── musique.wav          # l'extrait audio du jeu
 └── Makefile          # Fichier de compilation
 ```
 
 ## Fichier de sauvegarde
 
 Le jeu sauvegarde automatiquement la progression dans le fichier `savegame.dat`. Ce fichier contient :
-- Le nom du joueur
 - Le niveau actuel
-- Le nombre de vies
-- Les niveaux complétés
+- L'avancement des contrats
+- Le plateau du jeu
 
 ## Notes techniques
 
-- Le jeu nécessite un terminal compatible ANSI pour les couleurs
-- Compatible avec les systèmes Unix/Linux/macOS
-- Compilé avec le standard C99
+- Le jeu nécessite un terminal compatible ANSI pour les emojis
+- Compatible avec les systèmes Windows
 - Utilise les codes de couleur ANSI pour l'affichage
 
 ## Auteur
