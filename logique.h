@@ -29,10 +29,11 @@ typedef struct {
     int coups;
     int maxCoups;
     time_t debut;
+    int niveau;
 } Contrat;
 
 // Prototypes
-void initJeu(char (*mat)[N], Contrat *c);
+void initJeu(char (*mat)[N], Contrat *c, int niveau);
 void switchPos(char (*mat)[N], int i, int j, int k, int l);
 void stabiliserPlateau(char (*mat)[N], Contrat *c, int compterPoints);
 

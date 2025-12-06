@@ -84,16 +84,40 @@ void appliquerGravite(char (*mat)[N], int (*aSupprimer)[N], Contrat *c, int upda
 }
 
 // --- FONCTIONS PUBLIQUES ---
-void initJeu(char (*mat)[N], Contrat *c) {
+void initJeu(char (*mat)[N], Contrat *c, int niveau) {
     char tempChoices[5];
     for(int i=0; i<5; i++) tempChoices[i] = CHOICES[i];
     shuffle(tempChoices, 5);
 
-    c->score = 0; c->coups = 0; c->maxCoups = 20; c->debut = time(NULL);
-    c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 10; c->missions[0].mange = 0;
-    c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 5;  c->missions[1].mange = 0;
-    c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 3;  c->missions[2].mange = 0;
+    c->score = 0;
+    c->coups = 0;
+    c->debut = time(NULL);
+    c->niveau = niveau; // On stocke le niveau actuel
 
+    // --- DIFFICULTÉ PROGRESSIVE ---
+    if (niveau == 1) {
+        // Niveau 1 : Facile (Standard)
+        c->maxCoups = 15;
+        c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 10; c->missions[0].mange = 0;
+        c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 5;  c->missions[1].mange = 0;
+        c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 3;  c->missions[2].mange = 0;
+    }
+    else if (niveau == 2) {
+        // Niveau 2 : Moyen (Contrats plus gros)
+        c->maxCoups = 20;
+        c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 15; c->missions[0].mange = 0;
+        c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 10; c->missions[1].mange = 0;
+        c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 5;  c->missions[2].mange = 0;
+    }
+    else {
+        // Niveau 3 : Difficile (Gros contrats)
+        c->maxCoups = 25;
+        c->missions[0].type = tempChoices[0]; c->missions[0].aManger = 20; c->missions[0].mange = 0;
+        c->missions[1].type = tempChoices[1]; c->missions[1].aManger = 15; c->missions[1].mange = 0;
+        c->missions[2].type = tempChoices[2]; c->missions[2].aManger = 10; c->missions[2].mange = 0;
+    }
+
+    // Remplissage de la grille
     for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) mat[i][j] = CHOICES[rand() % NB_CHOICES];
 }
 

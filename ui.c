@@ -70,7 +70,7 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
         }
         
         printf("        ");
-        if (i == 0) printf("=== CONTRAT ===");
+        if (i == 0) printf("=== NIVEAU %d ===", c->niveau);
         else if (i == 1) printf("SCORE : %d", c->score);
         else if (i == 3) { printf("[ "); printEmoji(c->missions[0].type); printf(" ] : %d/%d", c->missions[0].mange, c->missions[0].aManger); }
         else if (i == 4) { printf("[ "); printEmoji(c->missions[1].type); printf(" ] : %d/%d", c->missions[1].mange, c->missions[1].aManger); }
