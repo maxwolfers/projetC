@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include "logique.h"
-#include "ui.h"
+#include "interface.h"
 #include "audio.h"
 
 void jouerPartie(int charger, int *musiqueActive) {

@@ -23,8 +23,8 @@ endif
 TARGET = plantamitz$(EXE)
 
 # --- FICHIERS ---
-SOURCES = main.c logique.c ui.c audio.c
-HEADERS = logique.h ui.h audio.h
+SOURCES = main.c logique.c interface.c audio.c
+HEADERS = logique.h interface.h audio.h
 
 # Génération automatique de la liste des objets (.o)
 OBJECTS = $(SOURCES:.c=.o)
