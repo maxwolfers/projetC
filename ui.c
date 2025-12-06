@@ -93,17 +93,25 @@ void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, in
     for(int k=0; k<3; k++) printf("                                                                      \n");
 }
 
-void afficherMenu() {
+void afficherMenu(int musiqueActive) {
     system("cls");
     Color(15, 0);
     printf("\n========================================\n");
     printf("      PLANTAMITZ 2025 - MENU\n");
     printf("========================================\n\n");
-    printf("   1. Nouvelle partie 🌞\n");
-    printf("   2. Continuer la partie\n");
-    printf("   3. Quitter\n\n");
+    printf("   1. Nouvelle partie \n");
+    printf("   2. Charger une partie\n");
+    
+    if (musiqueActive) {
+        printf("   3. Musique : [ON] (Desactiver)\n");
+    } else {
+        printf("   3. Musique : [OFF] (Activer)\n");
+    }
+
+    printf("   4. Quitter\n\n");
     printf("Votre choix : ");
 }
+
 
 int toucheAppuyee() {
     return _kbhit();

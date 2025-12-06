@@ -7,7 +7,7 @@ void Color(int text, int bg);
 void initConsole();
 void gotoligcol(int lig, int col);
 void printJeu(char (*mat)[N], Contrat *c, int curLig, int curCol, int selLig, int selCol, int clear);
-void afficherMenu();
+void afficherMenu(int musiqueActive);
 int toucheAppuyee();
 Command recupererCommande();
 
